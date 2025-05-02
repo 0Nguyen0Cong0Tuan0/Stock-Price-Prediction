@@ -4,3 +4,4 @@ yfinance
 newsapi-python
 matplotlib
 seaborn
+beautifulsoup4
