@@ -5,4 +5,6 @@ newsapi-python
 matplotlib
 seaborn
 beautifulsoup4
-fred
+statsmodels
+prophet
+scikit-learn
