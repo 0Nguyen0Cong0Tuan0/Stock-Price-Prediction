@@ -8,3 +8,4 @@ beautifulsoup4
 statsmodels
 prophet
 scikit-learn
+vaderSentiment

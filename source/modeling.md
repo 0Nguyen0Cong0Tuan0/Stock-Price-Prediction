@@ -47,12 +47,15 @@ Output is a DataFrame indexed by `Date` with daily stock prices and financial fe
 - Ensures realistic evaluation by simulating real-world forecasting scenarios.
 
 **4_Backtesting** 
-- Generates historical predictions for **ARIMA** and **Prophet**
+- Generates historical predictions for **ARIMA** and **Prophet**.
 - Implements a simple trading strategy (trading, not holding):
     - Buy (Signal = 1) if tomorrow's predicted price > today's
     - Sell (Signal = -1) if tomorrow's predicted price < today's
-- Calculates daily strategy returns and cumulative return (%)
-- Tracks the number of trades
+- Calculates daily strategy returns and cumulative return (%).
+- Tracks the number of trades.
+- The strategy is simplistic and ignores costs (e.g., 0.1% per trade). (Real trading involves slippage, taxes and risk management).
+- Backtesting on historical predictions may overestimate returns if models overfit to past data.
+
 
 **5_Visualization**
 - Plot historical Close princes, **ARIMA** and **Prophet** 7-day forecasts, **Prophet** confidence intervals and backtest signals (buy/sell triangles)
@@ -62,6 +65,7 @@ Output is a DataFrame indexed by `Date` with daily stock prices and financial fe
 **1_ARIMA (Auto-Regressive Integrated Moving Average)**
 - A statistical model that forecasts time series data based on its own past values (auto-regression), differences (integration) and lagged forecast errors (moving average).
 - ARIMA is a standard time series model, widely used in finance for stock price forecasting due to its simplicity and interpretability.
+- Assumes stationarity and linearity which stock prices often violate due to volatility and external stocks.
 - It relies solely on Close price $\rightarrow$ making it robust when financial fundamentals are limited or unreliable - no external data required.
 
 **Strengths**
@@ -79,6 +83,7 @@ Output is a DataFrame indexed by `Date` with daily stock prices and financial fe
 - A forecasting model developed by Meta AI, designed for time series with trends, seasonality and holidays. It supports additional regressors (e.g., financial metrics) and is robust to missing data and outliers.
 - Prophet handles trends, seasonality and external regressors (leveraging the financial dataset) to improve accuracy.
 - Tuning to demonstrate creativity and advanced feature engineering.
+- Assumes additive trends and seasonality, potentially missing complex market dynamics. Regressor's impact is limited by forward-filling.
 
 **Strengths**
 - Captures daily, weekly and yearly seasonality with external regressors $\rightarrow$ making it suitable for stock prices influenced by financial health.
@@ -139,6 +144,47 @@ Measures the average percentage error relative to actual prices.
 **MAPE**
 - Expresses error as a percentage, making it scale-invariant and easy to interpret (e.g., 1% error is intuitive). It's widely used in finance to compare performance across assets with different price levels.
 - Ideal for evaluating relative accuracy for ticker's stock price (e.g., $190 - $200 range).
+- Metrics focus on point accuracy not directional accuracy or risk (e.g., Value at Risk) which are critical in finance.
 - (Drawback) Can be unstable if actual prices are near zero (maybe not an issue for ticker) and sensitive to small denominators.
 
 **Why not other metrics?**
+
+**$R^2$** (Coefficient of Determination)
+- Measures variance explained but is less relevant for time series where the focus is on prediction error rather than model fit.
+
+**MSE** 
+- Similar to RMSE but less interpretable (squared units). RMSE is preferred for its dollar-based scale.
+
+**Directional accuracy** 
+- Measures correct prediction of price direction (up/down). Excluded because MAPE and backtesting (cumulative returns) indirectly capture directional performance and adding another metric would clutter outputs.
+
+**Pinball loss**
+- Used for quantile forecasting but overly complex as Proplet
+s confidence intervals already provide uncertainty estimates.
+
+**Suitability for this case**
+
+- **Finance context** _ RMSE, MAE and MAPE are standard in stock price forecasting, aligning with industry practices.
+- **Interpretability** _ MAPE's percentage format is intuitive for non-technical audiences (e.g., Prophet achieved 0.875% error) while RMSE and MAE provide technical rigor.
+- **Walk-forward validation** _ These metrics are average over 5 folds, ensuring robust evaluation across different time periods which is critical for volatile stock data.
+
+
+# **Additional questions addressed**
+
+**Why use walk-forward validation?**
+- Mimics real-world forecasting by training on past data and testing on future periods, avoiding overfitting and data leakage.
+- Critical for stock prices which are time-dependent and volatile. The 5-fold approach balances robustness with computational efficiency.
+- **Alternative** _ Simple train-test split risks overfitting to a single period. Cross-validation is less suitable for time series due to temporal dependencies.
+
+**Why a 7-day forecast horizon?**
+- Balances short-term predictability (stock prices are more stable over days) with practical utility (useful for weekly trading decisions).
+- **Limitation** _ Longer horizons (e.g., 30 days) increase uncertainty due to market noise. 
+
+**Why forward-fill financial metrics?**
+- Annual financial data must align with daily stock prices. Forward-filling assumes metrics remain constant within a year, simplifying integration.
+- **Limitation** _ Oversimplifies fundamental changes, potentially reducing regressor impact.
+
+**Why include backtesting?**
+- Demonstrates practical application by translating predictions into a trading strategy, quantifying profitability (e.g., 6.8% return).
+- Align with the goal of generating buy/sell/hold recommendations. Signals (buy/sell) are a stepping stone to decision rules.
+- **Limitation** _ Simplistic strategy and lack of costs limit realism.
