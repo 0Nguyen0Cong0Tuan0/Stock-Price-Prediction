@@ -9,3 +9,5 @@ statsmodels
 prophet
 scikit-learn
 vaderSentiment
+transformers
+torch
