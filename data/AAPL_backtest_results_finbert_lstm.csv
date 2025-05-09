@@ -1,0 +1,4 @@
+Model,Cumulative Return (%),Number of Trades
+ARIMA,3.9594475370234417,1
+Prophet,55.86235775657711,49
+LSTM,22.64587157840081,56
